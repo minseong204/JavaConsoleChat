@@ -29,14 +29,14 @@ public class Client {
     }
 
     public void register() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "사용자이름", "비밀번호")) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "username", "password")) {
 
             System.out.println("회원가입을 위해 사용자 이름을 입력해주세요:");
             String newUsername = scanner.nextLine();
             System.out.println("비밀번호를 입력해주세요:");
             String newPassword = hashPassword(scanner.nextLine());
             System.out.println("성별을 입력해주세요 (남/여):");
-            String gender = scanner.nextLine();
+            String gender = scanner.nextLine();
 
             String query = "INSERT INTO users (username, password, gender) VALUES (?, ?, ?)";
             try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -52,7 +52,7 @@ public class Client {
     }
 
     public boolean login() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "root", "ms@010204324")) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "username", "password")) {
             System.out.println("사용자 이름을 입력해주세요:");
             String username = scanner.nextLine();
             System.out.println("비밀번호를 입력해주세요:");
