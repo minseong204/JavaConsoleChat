@@ -24,7 +24,7 @@ public class Server {
                 thread.start();
             }
         } catch (IOException e) {
-            closeServerSocket();
+
         }
     }
 
