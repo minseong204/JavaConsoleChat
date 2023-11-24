@@ -29,15 +29,14 @@ public class Client {
     }
 
     public void register() {
-        try (Scanner sc = new Scanner(System.in);
-             Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "root", "ms@010204324")) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "사용자이름", "비밀번호")) {
 
             System.out.println("회원가입을 위해 사용자 이름을 입력해주세요:");
-            String newUsername = sc.nextLine();
+            String newUsername = scanner.nextLine();
             System.out.println("비밀번호를 입력해주세요:");
-            String newPassword = hashPassword(sc.nextLine());
+            String newPassword = hashPassword(scanner.nextLine());
             System.out.println("성별을 입력해주세요 (남/여):");
-            String gender = sc.nextLine();
+            String gender = scanner.nextLine();
 
             String query = "INSERT INTO users (username, password, gender) VALUES (?, ?, ?)";
             try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -153,11 +152,10 @@ public class Client {
     }
 
     public static void main(String[] args) throws IOException {
-        Scanner sc = new Scanner(System.in);
         System.out.println("채팅 애플리케이션에 오신 것을 환영합니다.");
         System.out.println("1: 로그인, 2: 회원가입");
-        int choice = sc.nextInt();
-        sc.nextLine(); // 버퍼 비우기
+        int choice = scanner.nextInt();
+        scanner.nextLine(); // 버퍼 비우기
 
         Client client;
         if (choice == 2) {
