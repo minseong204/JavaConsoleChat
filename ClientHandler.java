@@ -62,18 +62,17 @@ public class ClientHandler implements Runnable {
     }
 
     public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-    removeClientHandler(); // 연결 종료 시 항상 호출
-    try {
-        if (bufferedReader != null) {
-            bufferedReader.close();
+        removeClientHandler();
+        try {
+            if (bufferedReader != null) {
+                bufferedReader.close();
+            } else if (bufferedWriter != null) {
+                bufferedWriter.close();
+            } else if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        if (bufferedWriter != null) {
-            bufferedWriter.close();
-        }
-        if (socket != null) {
-            socket.close();
-        }
-    } catch (IOException e) {
-        e.printStackTrace();
     }
 }
