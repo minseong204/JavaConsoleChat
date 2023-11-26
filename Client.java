@@ -4,8 +4,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
 
 public class Client {
 
@@ -13,7 +11,7 @@ public class Client {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String username;
-    private static final Scanner scanner = new Scanner(System.in);
+    private static final BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
 
     public Client(Socket socket, String username) {
         this.username = username;
@@ -29,14 +27,13 @@ public class Client {
     }
 
     public void register() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "username", "password")) {
-
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "계정이름", "계정비밀번호")) {
             System.out.println("회원가입을 위해 사용자 이름을 입력해주세요:");
-            String newUsername = scanner.nextLine();
+            String newUsername = consoleReader.readLine();
             System.out.println("비밀번호를 입력해주세요:");
-            String newPassword = hashPassword(scanner.nextLine());
+            String newPassword = hashPassword(consoleReader.readLine());
             System.out.println("성별을 입력해주세요 (남/여):");
-            String gender = scanner.nextLine();
+            String gender = consoleReader.readLine();
 
             String query = "INSERT INTO users (username, password, gender) VALUES (?, ?, ?)";
             try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -48,15 +45,17 @@ public class Client {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public boolean login() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "username", "password")) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/chatappusermanager", "계정이름", "계정비밀번호")) {
             System.out.println("사용자 이름을 입력해주세요:");
-            String username = scanner.nextLine();
+            String username = consoleReader.readLine();
             System.out.println("비밀번호를 입력해주세요:");
-            String password = hashPassword(scanner.nextLine());
+            String password = hashPassword(consoleReader.readLine());
 
             String query = "SELECT * FROM users WHERE username = ? AND password = ?";
             try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -73,7 +72,7 @@ public class Client {
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException | IOException e) {
             e.printStackTrace();
             return false;
         }
@@ -103,16 +102,20 @@ public class Client {
             bufferedWriter.flush();
 
             while (socket.isConnected()) {
-                try {
-                    String messageToSend = scanner.nextLine();
+                String messageToSend = consoleReader.readLine();
+
+                if (messageToSend.equals("!history")) {
+                    bufferedWriter.write(messageToSend);
+                } else if (messageToSend.equals("!Clear")) {
+                    bufferedWriter.write(messageToSend);
+                } else if (messageToSend.equals("!1")) {
+                    bufferedWriter.write(messageToSend);
+                } else {
                     bufferedWriter.write(username + ": " + messageToSend);
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-                } catch (NoSuchElementException e) {
-                    System.out.println("입력 스트림이 닫혔습니다. 채팅 애플리케이션을 종료합니다.");
-                    closeEverything(socket, bufferedReader, bufferedWriter);
-                    break;
                 }
+
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
             }
         } catch (IOException e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
@@ -120,18 +123,18 @@ public class Client {
     }
 
     public void listenForMessage() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String msgFromGroupChat;
+        new Thread(() -> {
+            String msgFromGroupChat;
 
-                while (socket.isConnected()) {
-                    try {
-                        msgFromGroupChat = bufferedReader.readLine();
-                        System.out.println(msgFromGroupChat);
-                    } catch (IOException e) {
-                        closeEverything(socket, bufferedReader, bufferedWriter);
+            while (socket.isConnected()) {
+                try {
+                    msgFromGroupChat = bufferedReader.readLine();
+                    if (msgFromGroupChat != null) {
+                        System.out.println(msgFromGroupChat); // 서버로부터 받은 메시지를 콘솔에 출력
                     }
+                } catch (IOException e) {
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                    break;
                 }
             }
         }).start();
@@ -141,9 +144,11 @@ public class Client {
         try {
             if (bufferedReader != null) {
                 bufferedReader.close();
-            } else if (bufferedWriter != null) {
+            }
+            if (bufferedWriter != null) {
                 bufferedWriter.close();
-            } else if (socket != null) {
+            }
+            if (socket != null) {
                 socket.close();
             }
         } catch (IOException e) {
@@ -154,26 +159,23 @@ public class Client {
     public static void main(String[] args) throws IOException {
         System.out.println("채팅 애플리케이션에 오신 것을 환영합니다.");
         System.out.println("1: 로그인, 2: 회원가입");
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // 버퍼 비우기
+        int choice = Integer.parseInt(consoleReader.readLine());
 
         Client client;
         if (choice == 2) {
             client = new Client(null, null);
             client.register();
-            // 회원가입 후 로그인을 위한 Client 객체 재생성
             client = new Client(new Socket("localhost", 1234), null);
         } else if (choice == 1) {
             client = new Client(new Socket("localhost", 1234), null);
+            if (!client.login()) {
+                System.exit(0);
+            }
         } else {
             System.out.println("잘못된 선택입니다.");
-            System.exit(0);
             return;
         }
 
-        if (!client.login()) {
-            System.exit(0);
-        }
         client.listenForMessage();
         client.sendMessage();
     }
