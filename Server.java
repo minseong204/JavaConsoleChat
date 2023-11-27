@@ -6,7 +6,7 @@ import java.net.Socket;
 
 public class Server {
 
-    private static final Logger logger = LoggerFactory.getLogger(Server.class);
+    private final Logger logger = LoggerFactory.getLogger(Server.class);
     private final ServerSocket serverSocket;
     private final MongoDBUtil mongoDBUtil;
 
