@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandler implements Runnable {
-    private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private Socket socket;
     private BufferedReader bufferedReader;
