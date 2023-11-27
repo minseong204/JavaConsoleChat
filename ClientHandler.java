@@ -13,7 +13,7 @@ public class ClientHandler implements Runnable {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String clientUsername;
-    private MongoDBUtil mongoDBUtil;
+    private final MongoDBUtil mongoDBUtil;
 
     public ClientHandler(Socket socket, MongoDBUtil mongoDBUtil) {
         this.mongoDBUtil = mongoDBUtil;
@@ -105,7 +105,7 @@ public class ClientHandler implements Runnable {
 
         String response = bufferedReader.readLine();
         if (response.equals("!1")) {
-            mongoDBUtil.deleteChatMessagesByUser(clientUsername);
+            mongoDBUtil.deleteChatMessagesByUser();
             bufferedWriter.write("대화 내용이 삭제되었습니다.");
             bufferedWriter.newLine();
             bufferedWriter.flush();
